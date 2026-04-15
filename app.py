@@ -1,5 +1,5 @@
 from flask import Flask,request, url_for, redirect, render_template, jsonify
-from pycaret.regression import *
+from pycaret.regression import load_model, predict_model
 import pandas as pd
 import pickle
 import numpy as np
@@ -35,5 +35,6 @@ def predict_api():
     prediction = int(prediction.loc[0, 'prediction_label'])
     return jsonify({'output': prediction})
 
+# Al poner el host en 0.0.0.0, le estás permitiendo a Flask "escuchar" las peticiones que vienen desde fuera del contenedor
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

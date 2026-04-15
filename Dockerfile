@@ -1,18 +1,23 @@
-FROM python:3.11
+# Imagen base: Python 3.11 en versión 'slim' (ligera). 
+# Nota: 'slim' reduce el tamaño pero no trae librerías de C++ (como libgomp1), hay que instalarlas aparte.
+FROM python:3.11-slim
 
-RUN pip install virtualenv
-ENV VIRTUAL_ENV=/venv
-RUN virtualenv venv -p python3
-ENV PATH="VIRTUAL_ENV/bin:$PATH"
+# 1. Instalamos las dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
 
+# 2. Establecemos el directorio de trabajo
 WORKDIR /app
-ADD . /app
 
-# install dependencies
-RUN pip install -r requirements.txt
+# 3. Copiamos los archivos y los requerimientos
+COPY requirements.txt .
 
-# expose port
-EXPOSE 5000
+# 4. Instalamos las librerías de Python
+RUN pip install --no-cache-dir -r requirements.txt
 
-# run application
+# 5. Copiamos el resto de la aplicación
+COPY . .
+
+# 6. Comando para iniciar la app
 CMD ["python", "app.py"]

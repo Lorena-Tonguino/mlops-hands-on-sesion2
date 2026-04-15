@@ -1,56 +1,52 @@
-# Insurance Cost Prediction Web App
+# Laboratorio MLOps: Predicción de Seguros Médicos
 
-A machine learning web app that predicts annual insurance charges based on patient information. Built with [PyCaret](https://pycaret.org/) for model training and Flask for serving predictions.
+Este proyecto consiste en el despliegue de un modelo de regresión entrenado para predecir los costos anuales de seguros médicos basado en características del paciente.
 
-This repo was cloned from https://github.com/pycaret/deployment-heroku but with updated versions of packages.
+## Tecnologías Utilizadas
+* **Python 3.11-slim**: Base del sistema.
+* **Flask**: Framework para la interfaz web y API.
+* **PyCaret**: Librería para la inferencia del modelo de Machine Learning.
+* **Docker**: Containerización del entorno para asegurar la portabilidad.
 
-## What it does
+## Configuración de Infraestructura
+Para solucionar problemas de dependencias en arquitecturas ligeras (Linux Slim), se incluyó en el `Dockerfile` la instalación manual de:
+* `libgomp1`: Necesaria para el funcionamiento de LightGBM.
 
-- Trains a regression model using PyCaret on an insurance dataset with features: `age`, `sex`, `bmi`, `children`, `smoker`, and `region`
-- Serves the model via a Flask web app with a form-based UI and a REST API endpoint
-- Packages everything in a Docker container for easy deployment
+## Ejecución del Proyecto
+Para construir y correr esta aplicación en cualquier entorno con Docker, use los siguientes comandos:
 
-## API Endpoints
+1. **Construir la imagen:**
+   ```bash
+   docker build -t mi-app-medica:v1 .
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Web UI with input form |
-| GET | `/health` | Health check |
-| POST | `/predict` | Form-based prediction (returns HTML) |
-| POST | `/predict_api` | JSON-based prediction (returns JSON) |
+2. **Ejecutar el contenedor:**
 
-### Example request to `/predict_api`
+   ```bash    
+   docker run -p 5000:5000 mi-app-medica:v1
 
-```bash
-curl -X POST http://localhost:5000/predict_api \
-  -H "Content-Type: application/json" \
-  -d '{"age": 35, "sex": "male", "bmi": 26.5, "children": 2, "smoker": "no", "region": "northeast"}'
-```
+3. **Acceso local:**
 
-Response:
-```json
-{"output": 12345}
-```
+   Abrir en el navegador: http://localhost:5000
 
-## Build and run with Docker
 
-```bash
-docker build -t insurance-app .
-docker run -p 5000:5000 -it insurance-app
-```
+## Solución de Problemas (Lecciones Aprendidas)
 
-Then open http://localhost:5000 in your browser.
+Durante el desarrollo se identificaron y resolvieron los siguientes puntos críticos:
 
-## Run locally
+1. **Error de Librerías en Imágenes Slim (`OSError: libgomp.so.1`):**
+   * *Problema:* Las imágenes de Docker tipo "slim" son muy ligeras y no incluyen librerías de procesamiento paralelo.
+   * *Solución:* Se debe añadir `apt-get install -y libgomp1` en el Dockerfile y reconstruir la imagen.
 
-```bash
-pip install -r requirements.txt
-python app.py
-```
+2. **Conexión con el Daemon de Docker:**
+   * *Problema:* Error al conectar con la API de Docker (Engine no disponible).
+   * *Solución:* Asegurarse de que **Docker Desktop** esté abierto y en estado "Running" (verde) antes de ejecutar comandos en la terminal.
 
-## Tech stack
+3. **Acceso desde el Host al Contenedor:**
+   * *Problema:* La aplicación no cargaba en el navegador de Windows.
+   * *Solución:* Configurar Flask para escuchar en `host='0.0.0.0'` y realizar el mapeo de puertos `-p 5000:5000` al ejecutar el contenedor.
 
-- **PyCaret 3.3.1** — model training and inference
-- **Flask 3.0.0** — web framework
-- **pandas 1.5.1** — data handling
-- **Docker** — containerization
+4. **Persistencia de Cambios:**
+   * *Recomendación:* Siempre que se modifique el `Dockerfile` o el código `app.py`, es necesario realizar un nuevo `docker build` para que los cambios se apliquen a la imagen.
+   
+
+   
