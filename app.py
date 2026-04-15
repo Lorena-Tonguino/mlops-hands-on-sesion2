@@ -37,4 +37,4 @@ def predict_api():
 
 # Al poner el host en 0.0.0.0, le estás permitiendo a Flask "escuchar" las peticiones que vienen desde fuera del contenedor
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=False)
